@@ -1,0 +1,44 @@
+{
+  "name": "stripe-learning",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "app",
+    "ui",
+    "lib"
+  ],
+  "scripts": {
+    "dev": "bun run dev:app & bun run dev:ui",
+    "dev:app": "bun --filter app dev",
+    "dev:ui": "bun --filter ui dev",
+    "build": "bun run build:lib && bun run build:app && bun run build:ui",
+    "build:app": "bun --filter app build",
+    "build:ui": "bun --filter ui build",
+    "build:lib": "bun --filter lib build",
+    "test": "bun test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "setup-hooks": "echo '#!/bin/sh\nbun lint-staged' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "@types/bun": "latest",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
+    "typescript": "^5",
+    "typescript-eslint": "^8.46.2"
+  }
+}
