@@ -196,7 +196,7 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 | # | トピック | ステータス | 完了日 |
 |---|----------|------------|--------|
 | 1 | セットアップ (SDK導入、APIキー設定) | ✅ 完了 | 2025-12-26 |
-| 2 | 単発決済 (Checkout Session) | 🔄 進行中 | - |
+| 2 | 単発決済 (Checkout Session) | ✅ 完了 | 2025-12-26 |
 | 3 | Webhook (決済完了通知) | ⬚ 未着手 | - |
 | 4 | サブスクリプション (月額課金) | ⬚ 未着手 | - |
 | 5 | Connect (プラットフォーム向け分配) | ⬚ 未着手 | - |
@@ -209,7 +209,31 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 - [x] 疎通確認 (Balance API で確認完了)
 
 ### Step 2: 単発決済 (Checkout Session)
-- [ ] 商品・価格の作成
-- [ ] Checkout Session APIエンドポイント作成
-- [ ] 決済フローの実装（フロントエンド）
-- [ ] 成功/キャンセルページの作成
+- [x] 商品・価格の作成 (Product → Price の順で作成)
+- [x] Checkout Session APIエンドポイント作成
+- [x] 決済フローの実装（フロントエンド）
+- [x] 成功/キャンセルページの作成
+
+### Step 3: Webhook (決済完了通知)
+- [ ] Stripe CLIのインストール
+- [ ] Webhookエンドポイントの作成
+- [ ] 署名検証の実装
+- [ ] checkout.session.completed イベントの処理
+
+---
+
+## 現在の実装状況
+
+### 実装済みエンドポイント (app/src/index.ts)
+- `GET /api/stripe/test` - Balance API疎通確認
+- `POST /api/stripe/products` - 商品・価格の作成
+- `POST /api/stripe/checkout` - Checkout Session作成
+
+### 実装済みUI (ui/src/App.tsx)
+- `/` - 商品作成フォーム + 購入ボタン
+- `/success` - 決済成功ページ
+- `/cancel` - 決済キャンセルページ
+
+### 次回やること
+Step 3: Webhook - 決済が「本当に」完了したかをサーバー側で検知する仕組み。
+現状は `/success` に直接アクセスしても表示されてしまう問題がある。

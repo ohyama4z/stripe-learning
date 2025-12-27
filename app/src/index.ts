@@ -62,6 +62,20 @@ app.post('/api/stripe/products', async c => {
   return c.json({ product, price } satisfies CreateProductResponse)
 })
 
+// Checkout Sessionを作成するエンドポイント
+app.post('/api/stripe/checkout', async c => {
+  const body = await c.req.json<CreateCheckoutRequest>()
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    line_items: [{ price: body.priceId, quantity: 1 }],
+    success_url: 'http://localhost:5173/success',
+    cancel_url: 'http://localhost:5173/cancel',
+  })
+
+  return c.json({ url: session.url || '' } satisfies CreateCheckoutResponse)
+})
+
 export default {
   port: 3001,
   fetch: app.fetch,
