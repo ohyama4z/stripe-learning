@@ -197,7 +197,7 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 |---|----------|------------|--------|
 | 1 | セットアップ (SDK導入、APIキー設定) | ✅ 完了 | 2025-12-26 |
 | 2 | 単発決済 (Checkout Session) | ✅ 完了 | 2025-12-26 |
-| 3 | Webhook (決済完了通知) | ⬚ 未着手 | - |
+| 3 | Webhook (決済完了通知) | ✅ 完了 | 2026-01-02 |
 | 4 | サブスクリプション (月額課金) | ⬚ 未着手 | - |
 | 5 | Connect (プラットフォーム向け分配) | ⬚ 未着手 | - |
 
@@ -215,10 +215,20 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 - [x] 成功/キャンセルページの作成
 
 ### Step 3: Webhook (決済完了通知)
-- [ ] Stripe CLIのインストール
-- [ ] Webhookエンドポイントの作成
-- [ ] 署名検証の実装
-- [ ] checkout.session.completed イベントの処理
+- [x] Stripe CLIのインストール
+- [x] Webhookエンドポイントの作成 (`POST /api/stripe/webhook`)
+- [x] 署名検証の実装 (`constructEventAsync` を使用)
+- [x] checkout.session.completed イベントの処理
+
+#### 学んだこと
+- **Webhookの役割**: ユーザーの行動（ブラウザ閉じる等）に依存せず、Stripeがサーバーに直接通知する仕組み
+- **署名検証**: `stripe-signature` ヘッダーと `STRIPE_WEBHOOK_SECRET` を使って、リクエストが本物のStripeからか検証
+- **Bun環境の注意点**: Stripe SDK v20 + Bun では `constructEvent` ではなく `await constructEventAsync` を使う必要がある（Web Crypto APIが非同期のみサポートのため）
+- **Checkout Session作成 ≠ 決済完了**: Session作成は決済ページのURL発行のみ。実際の決済は後から行われる
+- **Webhookとフロント検証の違い**:
+  - Webhook: サーバー側処理（DB保存、メール送信など）に使用
+  - Session検証API: フロントエンドの表示制御（/successページの不正アクセス防止）に使用
+- **ローカルテスト**: `stripe listen --forward-to localhost:3001/api/stripe/webhook` でローカル転送
 
 ---
 
@@ -228,6 +238,7 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 - `GET /api/stripe/test` - Balance API疎通確認
 - `POST /api/stripe/products` - 商品・価格の作成
 - `POST /api/stripe/checkout` - Checkout Session作成
+- `POST /api/stripe/webhook` - Webhook受信（署名検証 + イベント処理）
 
 ### 実装済みUI (ui/src/App.tsx)
 - `/` - 商品作成フォーム + 購入ボタン
@@ -235,5 +246,8 @@ shadcn/uiコンポーネント追加: `npx shadcn@latest add <component-name>`
 - `/cancel` - 決済キャンセルページ
 
 ### 次回やること
-Step 3: Webhook - 決済が「本当に」完了したかをサーバー側で検知する仕組み。
-現状は `/success` に直接アクセスしても表示されてしまう問題がある。
+Step 4: サブスクリプション - 月額課金の実装。
+- 定期課金用のPrice作成（`recurring` オプション）
+- Customer（顧客）の作成と管理
+- Subscription（サブスクリプション）の作成
+- 解約・プラン変更の処理

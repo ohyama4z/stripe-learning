@@ -40,8 +40,9 @@ app.get('/', c => {
 
 
 app.get('/api/stripe/test', async c => {
-  const balance = await stripe.balance.retrieve()
-  return c.json(balance)
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  console.log('webhookSecret:', webhookSecret ? webhookSecret.slice(0, 10) + '...' : 'undefined')
+  return c.json({ webhookSecret })
 })
 
 // 商品と価格を作成するエンドポイント
@@ -74,6 +75,41 @@ app.post('/api/stripe/checkout', async c => {
   })
 
   return c.json({ url: session.url || '' } satisfies CreateCheckoutResponse)
+})
+
+// Stripe Webhook エンドポイント
+app.post('/api/stripe/webhook', async c => {
+  console.log('Received webhook request')
+  const signature = c.req.header('Stripe-Signature')
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+  const rawBody = await c.req.text()
+
+  // TODO(human): 署名検証とイベント処理を実装してください
+  // 1. signature が存在しない場合は 400 エラーを返す
+  if (!signature) {
+    return c.text('Missing stripe-signature header', 400)
+  }
+  // 2. stripe.webhooks.constructEvent() で署名検証（try-catchで囲む）
+  try {
+    const event = await stripe.webhooks.constructEventAsync(
+      rawBody,
+      signature,
+      webhookSecret
+    )
+
+
+    // 4. event.type が 'checkout.session.completed' の場合、session情報をログ出力
+    if (event.type === 'checkout.session.completed') {
+      console.log('Checkout Session completed:', event.data.object)
+    }
+
+    return c.json({ received: true }, 200);
+  } catch (err) {
+    // 3. 検証失敗時は 400 エラーを返す
+    console.error('Err: ', err)
+    return c.text('Webhook signature verification failed', 400)
+  }
+
 })
 
 export default {
